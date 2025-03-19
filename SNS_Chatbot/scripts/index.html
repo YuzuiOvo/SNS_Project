@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄金价格预测系统</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>黄金价格预测系统</h1>
+            <p class="subtitle">基于机器学习的黄金价格预测平台</p>
+            <div id="connectionStatus" class="connection-status">正在连接服务器...</div>
+        </header>
+
+        <main>
+            <div class="prediction-form">
+                <div class="input-group">
+                    <label for="date">选择预测日期：</label>
+                    <input type="date" id="date" required>
+                </div>
+                <button id="predictBtn">开始预测</button>
+            </div>
+
+            <div class="results" id="results">
+                <div class="result-card dxy">
+                    <h3>美元指数预测</h3>
+                    <div class="value" id="dxyValue">--</div>
+                </div>
+                <div class="result-card gold">
+                    <h3>黄金价格预测</h3>
+                    <div class="value" id="goldValue">--</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 黄金价格预测系统 | 基于深度学习与机器学习</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
