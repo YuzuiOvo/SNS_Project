@@ -1,1 +1,0 @@
-# Gold-Prediction-Group-Seven
