@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能预测助手</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #FF9500;
+            --secondary-color: #FF7A00;
+            --bg-color: #FFFFFF;
+            --text-color: #333333;
+            --light-gray: #F5F5F5;
+            --mid-gray: #E0E0E0;
+            --dark-gray: #757575;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 50vh 50vh;
+            gap: 20px;
+            padding: 20px;
+            height: 100vh;
+        }
+
+        /* 聊天机器人区域 */
+        .chat-container {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            background-color: var(--bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-header i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: var(--light-gray);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            margin-left: auto;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 18px 18px 0 18px;
+            padding: 10px 15px;
+        }
+
+        .bot-message {
+            background-color: white;
+            border-radius: 0 18px 18px 18px;
+            padding: 10px 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-footer {
+            padding: 15px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid var(--mid-gray);
+        }
+
+        .date-input {
+            padding: 12px 15px;
+            border: 1px solid var(--mid-gray);
+            border-radius: 25px;
+            flex: 1;
+            margin-right: 10px;
+            transition: var(--transition);
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(255, 149, 0, 0.2);
+        }
+
+        .send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .send-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        /* 预测结果区域 */
+        .prediction-container {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            display: flex;
+            gap: 20px;
+        }
+
+        .prediction-card {
+            flex: 1;
+            background-color: var(--bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .prediction-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+            color: var(--dark-gray);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .change {
+            display: flex;
+            align-items: center;
+            font-size: 1em;
+        }
+
+        .up {
+            color: #4CAF50;
+        }
+
+        .down {
+            color: #F44336;
+        }
+
+        /* 趋势图区域 */
+        .chart-container {
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+            background-color: var(--bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: var(--light-gray);
+        }
+
+        .chart-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .chart-body {
+            flex: 1;
+            position: relative;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .chat-container {
+                grid-column: 1;
+                grid-row: 1;
+                height: 50vh;
+            }
+
+            .prediction-container {
+                grid-column: 1;
+                grid-row: 2;
+                flex-direction: row;
+            }
+
+            .chart-container {
+                grid-column: 1;
+                grid-row: 3;
+                height: 50vh;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .prediction-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .value {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 10px;
+                gap: 10px;
+            }
+        }
+
+        .error {
+            color: #F44336;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 聊天机器人区域 -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <i>📊</i> 智能预测助手
+            </div>
+            <div class="chat-body" id="chat-body">
+                <div class="message bot-message">
+                    您好！我是预测助手。请选择一个未来30天内的日期，我将为您预测美元指数和黄金价格。
+                </div>
+            </div>
+            <div class="chat-footer">
+                <input type="date" id="date-input" class="date-input">
+                <button id="send-btn" class="send-btn">➤</button>
+            </div>
+            <div id="error-message" class="error"></div>
+        </div>
+
+        <!-- 预测结果区域 -->
+        <div class="prediction-container">
+            <div class="prediction-card" id="dxy-card">
+                <div class="card-header">美元指数预测</div>
+                <div class="value" id="dxy-value">--</div>
+                <div class="change" id="dxy-change">等待预测...</div>
+            </div>
+            <div class="prediction-card" id="gold-card">
+                <div class="card-header">黄金价格预测 (USD)</div>
+                <div class="value" id="gold-value">--</div>
+                <div class="change" id="gold-change">等待预测...</div>
+            </div>
+        </div>
+
+        <!-- 趋势图区域 -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">7天预测趋势</div>
+                <div class="chart-tabs">
+                    <div class="chart-tab active" data-chart="dxy">美元指数</div>
+                    <div class="chart-tab" data-chart="gold">黄金价格</div>
+                </div>
+            </div>
+            <div class="chart-body">
+                <canvas id="trend-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // 设置日期选择器范围
+            const today = new Date();
+            const maxDate = new Date();
+            maxDate.setDate(today.getDate() + 30);
+            
+            const dateInput = $('#date-input');
+            dateInput.attr('min', formatDate(today));
+            dateInput.attr('max', formatDate(maxDate));
+            dateInput.val(formatDate(today));
+
+            // 图表初始化
+            const ctx = document.getElementById('trend-chart').getContext('2d');
+            let chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: getDates(7),
+                    datasets: [
+                        {
+                            label: '美元指数预测',
+                            data: Array(7).fill(null),
+                            borderColor: '#FF9500',
+                            backgroundColor: 'rgba(255, 149, 0, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                    animation: {
+                        duration: 1000
+                    }
+                }
+            });
+
+            // 发送按钮点击事件
+            $('#send-btn').click(function() {
+                sendMessage();
+            });
+
+            // 回车键发送
+            $('#date-input').keypress(function(e) {
+                if(e.which == 13) {
+                    sendMessage();
+                }
+            });
+
+            // 图表切换事件
+            $('.chart-tab').click(function() {
+                const chartType = $(this).data('chart');
+                $('.chart-tab').removeClass('active');
+                $(this).addClass('active');
+                
+                if (chartType === 'dxy') {
+                    updateChart('美元指数预测', '#FF9500', 'rgba(255, 149, 0, 0.1)');
+                } else {
+                    updateChart('黄金价格预测', '#FFD700', 'rgba(255, 215, 0, 0.1)');
+                }
+            });
+
+            // 发送消息函数
+            function sendMessage() {
+                const dateValue = dateInput.val();
+                
+                if (!dateValue) {
+                    $('#error-message').text('请选择一个日期');
+                    return;
+                }
+
+                $('#error-message').text('');
+                
+                // 添加用户消息
+                appendMessage('user', `预测 ${dateValue} 的美元指数和黄金价格`);
+                
+                // 添加等待信息
+                const waitMsgId = appendMessage('bot', `正在分析数据中<div class="loading"></div>`);
+                
+                // 发送AJAX请求
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    data: { date_input: dateValue },
+                    success: function(response) {
+                        // 移除等待消息
+                        $(`#${waitMsgId}`).remove();
+                        
+                        if (response.error) {
+                            appendMessage('bot', `抱歉，预测过程中出现错误: ${response.error}`);
+                            $('#error-message').text(response.error);
+                        } else {
+                            // 更新聊天消息
+                            appendMessage('bot', `${dateValue} 的预测结果：<br>
+                                美元指数: ${response.dxy_predicted.toFixed(2)}<br>
+                                黄金价格: ${response.gold_predicted.toFixed(2)} USD`);
+                            
+                            // 更新预测卡片
+                            updatePredictionCards(response.dxy_predicted, response.gold_predicted);
+                            
+                            // 生成趋势数据并更新图表
+                            generateTrendData(response.dxy_predicted, response.gold_predicted);
+                            
+                            // 自动滚动到图表区域
+                            $('html, body').animate({
+                                scrollTop: $('.chart-container').offset().top
+                            }, 800);
+                        }
+                    },
+                    error: function() {
+                        // 移除等待消息
+                        $(`#${waitMsgId}`).remove();
+                        
+                        appendMessage('bot', '抱歉，无法连接到预测服务。请稍后再试。');
+                        $('#error-message').text('连接服务器失败');
+                    }
+                });
+            }
+
+            // 添加消息到聊天界面
+            function appendMessage(type, text) {
+                const msgId = 'msg-' + Date.now();
+                const msgClass = type === 'user' ? 'user-message' : 'bot-message';
+                $('#chat-body').append(`<div id="${msgId}" class="message ${msgClass}">${text}</div>`);
+                
+                // 滚动到最新消息
+                $('#chat-body').scrollTop($('#chat-body')[0].scrollHeight);
+                
+                return msgId;
+            }
+
+            // 更新预测卡片
+            function updatePredictionCards(dxyValue, goldValue) {
+                $('#dxy-value').text(dxyValue.toFixed(2));
+                $('#gold-value').text(goldValue.toFixed(2));
+                
+                // 假设变化量 (这里只是UI展示，实际应根据历史数据计算)
+                const dxyChange = ((Math.random() * 2) - 1).toFixed(2);
+                const goldChange = ((Math.random() * 20) - 10).toFixed(2);
+                
+                const dxyChangeHtml = dxyChange >= 0 ? 
+                    `<span class="up">↑ ${dxyChange}</span>` : 
+                    `<span class="down">↓ ${Math.abs(dxyChange)}</span>`;
+                
+                const goldChangeHtml = goldChange >= 0 ? 
+                    `<span class="up">↑ ${goldChange}</span>` : 
+                    `<span class="down">↓ ${Math.abs(goldChange)}</span>`;
+                
+                $('#dxy-change').html(dxyChangeHtml);
+                $('#gold-change').html(goldChangeHtml);
+            }
+
+            // 生成趋势数据
+            function generateTrendData(dxyValue, goldValue) {
+                const dates = getDates(7);
+                
+                // 生成随机趋势数据 (实际项目中应替换为真实的预测数据)
+                const dxyData = [dxyValue];
+                const goldData = [goldValue];
+                
+                for (let i = 1; i < 7; i++) {
+                    // 随机波动，确保趋势平滑
+                    dxyData.push(dxyData[i-1] + ((Math.random() * 0.6) - 0.3));
+                    goldData.push(goldData[i-1] + ((Math.random() * 12) - 6));
+                }
+                
+                // 更新图表数据
+                const activeChart = $('.chart-tab.active').data('chart');
+                if (activeChart === 'dxy') {
+                    updateChartData(dates, dxyData, '美元指数预测', '#FF9500', 'rgba(255, 149, 0, 0.1)');
+                } else {
+                    updateChartData(dates, goldData, '黄金价格预测', '#FFD700', 'rgba(255, 215, 0, 0.1)');
+                }
+            }
+
+            // 更新图表数据
+            function updateChartData(labels, data, label, borderColor, backgroundColor) {
+                chart.data.labels = labels;
+                chart.data.datasets[0].label = label;
+                chart.data.datasets[0].data = data;
+                chart.data.datasets[0].borderColor = borderColor;
+                chart.data.datasets[0].backgroundColor = backgroundColor;
+                chart.update();
+            }
+
+            // 更新图表类型
+            function updateChart(label, borderColor, backgroundColor) {
+                const data = chart.data.datasets[0].data;
+                updateChartData(chart.data.labels, data, label, borderColor, backgroundColor);
+            }
+
+            // 获取未来几天的日期
+            function getDates(days) {
+                const dates = [];
+                const startDate = new Date(dateInput.val() || new Date());
+                
+                for (let i = 0; i < days; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(date.getDate() + i);
+                    dates.push(formatDateShort(date));
+                }
+                
+                return dates;
+            }
+
+            // 格式化日期 (YYYY-MM-DD)
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // 格式化短日期 (MM-DD)
+            function formatDateShort(date) {
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${month}-${day}`;
+            }
+        });
+    </script>
+</body>
+</html>
