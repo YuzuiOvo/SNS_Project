@@ -20,7 +20,7 @@ y = df['Close_x']  # 黄金价格是我们要预测的目标变量
 # 将数据分为训练集和测试集，80%的数据用于训练，20%的数据用于测试
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 # 创建 XGBoost 回归模型
-xgb_model = xgb.XGBRegressor(n_estimators=200, random_state=70)
+xgb_model = xgb.XGBRegressor(n_estimators=30, random_state=20)
 
 # 训练模型
 xgb_model.fit(X_train, y_train)
