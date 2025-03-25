@@ -146,16 +146,17 @@ with open('mlp_gold_model.pkl', 'wb') as f:
 # Save the GRU model
 gru_dxy_model.save('gru_dxy_model.h5')  # Save the GRU model as an HDF5 file
 
-# 在训练时，保存 MinMaxScaler
+# Save MinMaxScaler during training
 scaler_dxy = MinMaxScaler(feature_range=(0, 1))
 y_dxy_scaled = scaler_dxy.fit_transform(y_dxy.values.reshape(-1, 1))
 
 scaler_gold = MinMaxScaler(feature_range=(0, 1))
 y_gold_scaled = scaler_gold.fit_transform(y_gold.values.reshape(-1, 1))
 
-# 保存 MinMaxScaler
+# Save MinMaxScaler
 with open('scaler_dxy.pkl', 'wb') as f:
     pickle.dump(scaler_dxy, f)
 
 with open('scaler_gold.pkl', 'wb') as f:
     pickle.dump(scaler_gold, f)
+
