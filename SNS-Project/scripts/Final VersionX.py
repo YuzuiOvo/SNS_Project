@@ -135,16 +135,16 @@ gold_pred = scaler_gold.inverse_transform(gold_pred_scaled.reshape(-1, 1))
 
 print(f"The predicted future gold price is: {gold_pred[0][0]} USD")
 
-# 保存 RandomForest 模型
+# Save the RandomForest model
 with open('rf_gold_model.pkl', 'wb') as f:
     pickle.dump(rf_gold_model, f)
 
-# 保存 MLP 模型
+# Save the MLP model
 with open('mlp_gold_model.pkl', 'wb') as f:
     pickle.dump(mlp_gold_model, f)
 
-# 保存 GRU 模型
-gru_dxy_model.save('gru_dxy_model.h5')  # GRU 模型保存为 HDF5 文件
+# Save the GRU model
+gru_dxy_model.save('gru_dxy_model.h5')  # Save the GRU model as an HDF5 file
 
 # 在训练时，保存 MinMaxScaler
 scaler_dxy = MinMaxScaler(feature_range=(0, 1))
