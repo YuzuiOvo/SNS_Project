@@ -5,32 +5,32 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 
-# 读取数据
+# Read the data
 df = pd.read_csv("D:/cursor/Project/SNS-Project/Data/merged_data.csv")
 
-# 转换日期为数值（比如将日期转换为天数，方便机器学习模型使用）
+# Convert the date to a numerical value (e.g., convert the date to the number of days for easier use in machine learning models)
 df['Date'] = pd.to_datetime(df['Date'])
-df['Date'] = df['Date'].map(lambda x: x.toordinal())  # 将日期转换为整数
+df['Date'] = df['Date'].map(lambda x: x.toordinal())  # Convert the date to an integer
 
-# 选择特征（DXY指数和日期）
-X = df[['Date', 'Close_y']]  # 使用Date和DXY指数作为特征
-y = df['Close_x']  # 黄金价格是我们要预测的目标变量
+# Select features (DXY index and date)
+X = df[['Date', 'Close_y']]  # Use Date and DXY index as features
+y = df['Close_x']  # Gold price is the target variable we want to predict
 
-# 将数据分为训练集和测试集，80%的数据用于训练，20%的数据用于测试
+# Split the data into training and testing sets, 80% for training and 20% for testing
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 from sklearn.ensemble import GradientBoostingRegressor
 
-# 创建梯度提升回归模型
+# Create a gradient boosting regression model
 gb_model = GradientBoostingRegressor(n_estimators=100, random_state=42)
 
-# 训练模型
+# Train the model
 gb_model.fit(X_train, y_train)
 
-# 预测
+# Make predictions
 gb_y_pred = gb_model.predict(X_test)
 
-# 评估模型性能
+# Evaluate model performance
 gb_mse = mean_squared_error(y_test, gb_y_pred)
 gb_r2 = r2_score(y_test, gb_y_pred)
 
