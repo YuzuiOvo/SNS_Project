@@ -6,36 +6,37 @@ from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 import xgboost as xgb
 
-# 读取数据
+# Read the data
 df = pd.read_csv("D:/cursor/Project/SNS-Project/Data/merged_data.csv")
 
-# 转换日期为数值（比如将日期转换为天数，方便机器学习模型使用）
+# Convert the date to a numerical value (e.g., convert the date to the number of days for easier use in machine learning models)
 df['Date'] = pd.to_datetime(df['Date'])
-df['Date'] = df['Date'].map(lambda x: x.toordinal())  # 将日期转换为整数
+df['Date'] = df['Date'].map(lambda x: x.toordinal())  # Convert the date to an integer
 
-# 选择特征（DXY指数和日期）
-X = df[['Date', 'Close_y']]  # 使用Date和DXY指数作为特征
-y = df['Close_x']  # 黄金价格是我们要预测的目标变量
+# Select features (DXY index and date)
+X = df[['Date', 'Close_y']]  # Use Date and DXY index as features
+y = df['Close_x']  # Gold price is the target variable we want to predict
 
-# 将数据分为训练集和测试集，80%的数据用于训练，20%的数据用于测试
+# Split the data into training and testing sets, 80% for training and 20% for testing
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-# 创建 XGBoost 回归模型
+
+# Create XGBoost regression model
 xgb_model = xgb.XGBRegressor(n_estimators=30, random_state=20)
 
-# 训练模型
+# Train the model
 xgb_model.fit(X_train, y_train)
 
-# 预测
+# Make predictions
 xgb_y_pred = xgb_model.predict(X_test)
 
-# 评估模型性能
+# Evaluate model performance
 xgb_mse = mean_squared_error(y_test, xgb_y_pred)
 xgb_r2 = r2_score(y_test, xgb_y_pred)
 
 print(f"XGBoost Mean Squared Error: {xgb_mse}")
 print(f"XGBoost R² Score: {xgb_r2}")
 
-# 可视化预测结果
+# Visualize the prediction results
 plt.figure(figsize=(10,6))
 plt.plot(y_test.index, y_test, color='blue', label='Actual Gold Price')
 plt.plot(y_test.index, xgb_y_pred, color='red', linestyle='dashed', label='Predicted Gold Price')
